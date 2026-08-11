@@ -1,0 +1,907 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Boolean Laws Simulator | Interactive Logic Studio</title>
+
+    <!-- Browser Tab Icon (SVG Data URI)
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234F46E5'><path d='M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z'/></svg>"
+    /> -->
+
+    <!-- Browser Tab Icon: Logic Gate & Microchip Symbol -->
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234F46E5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='2' y='2' width='20' height='20' rx='5' ry='5'/><path d='M7 8h3a3 3 0 0 1 0 6H7'/><line x1='14' y1='8' x2='17' y2='8'/><line x1='14' y1='16' x2='17' y2='16'/><line x1='14' y1='12' x2='17' y2='12'/></svg>"
+    />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              heading: ["Outfit", "sans-serif"],
+              body: ["Plus Jakarta Sans", "sans-serif"],
+              mono: ["Fira Code", "monospace"],
+            },
+            colors: {
+              slateSoft: "#F8FAFC",
+              indigoPrimary: "#4F46E5",
+              skyAccent: "#0EA5E9",
+              logic1: "#10B981" /* Emerald Green */,
+              logic0: "#EF4444" /* Coral Red / Rose */,
+            },
+            boxShadow: {
+              soft: "0 4px 20px -2px rgba(0, 0, 0, 0.05)",
+              glow: "0 0 20px rgba(79, 70, 229, 0.25)",
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      :root {
+        --bg: #f8fafc;
+        --primary: #4f46e5;
+        --logic-1: #10b981;
+        --logic-0: #ef4444;
+      }
+
+      body {
+        background-color: var(--bg);
+        color: #1e293b;
+        cursor: none; /* Hide default cursor for custom ring */
+        overflow-x: hidden;
+      }
+
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar {
+        width: 10px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #e2e8f0;
+        border-radius: 5px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #94a3b8;
+        border-radius: 5px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--primary);
+      }
+
+      /* Custom Ring Cursor */
+      #cursor-ring {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 32px;
+        height: 32px;
+        border: 2px solid var(--primary);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        z-index: 9999;
+        transition:
+          width 0.2s,
+          height 0.2s,
+          background-color 0.2s,
+          border-color 0.2s;
+        mix-blend-mode: multiply;
+      }
+      #cursor-dot {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 6px;
+        height: 6px;
+        background-color: var(--primary);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        z-index: 10000;
+      }
+
+      /* Cursor Hover State */
+      body.hovering-interactive #cursor-ring {
+        width: 48px;
+        height: 48px;
+        background-color: rgba(79, 70, 229, 0.1);
+        border-color: var(--primary);
+      }
+
+      /* Logic State Colors & Transitions */
+      .state-0 {
+        color: var(--logic-0);
+        transition: all 0.3s;
+      }
+      .state-1 {
+        color: var(--logic-1);
+        transition: all 0.3s;
+      }
+      .bg-state-0 {
+        background-color: var(--logic-0);
+        transition: all 0.3s;
+        color: white;
+      }
+      .bg-state-1 {
+        background-color: var(--logic-1);
+        transition: all 0.3s;
+        color: white;
+      }
+      .border-state-0 {
+        border-color: var(--logic-0);
+        transition: all 0.3s;
+      }
+      .border-state-1 {
+        border-color: var(--logic-1);
+        transition: all 0.3s;
+      }
+
+      /* Custom Toggle Switch */
+      .toggle-checkbox:checked {
+        right: 0;
+        border-color: var(--logic-1);
+      }
+      .toggle-checkbox:checked + .toggle-label {
+        background-color: var(--logic-1);
+      }
+      .toggle-checkbox:not(:checked) {
+        border-color: var(--logic-0);
+      }
+      .toggle-checkbox:not(:checked) + .toggle-label {
+        background-color: var(--logic-0);
+      }
+
+      /* Card Hover Effect */
+      .law-card {
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+      }
+      .law-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.08);
+      }
+    </style>
+  </head>
+  <body
+    class="font-body text-slate-800 antialiased selection:bg-indigoPrimary selection:text-white pb-20"
+  >
+    <!-- Interactive Cursor Elements -->
+    <div id="cursor-ring"></div>
+    <div id="cursor-dot"></div>
+
+    <header
+      class="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-slate-200 shadow-sm"
+    >
+      <div
+        class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between"
+      >
+        <div class="flex items-center gap-3">
+          <div class="flex gap-1.5 interactive">
+            <div class="w-3 h-3 rounded-full bg-rose-400"></div>
+            <div class="w-3 h-3 rounded-full bg-amber-400"></div>
+            <div class="w-3 h-3 rounded-full bg-emerald-400"></div>
+          </div>
+          <div class="h-6 w-px bg-slate-300 mx-2"></div>
+          <a
+            href="#"
+            class="font-heading font-bold text-xl text-indigoPrimary flex items-center gap-2 interactive"
+          >
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
+              ></path>
+            </svg>
+            Boolean Logic Studio
+          </a>
+        </div>
+        <nav
+          class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600"
+        >
+          <a
+            href="#overview"
+            class="hover:text-indigoPrimary transition-colors interactive"
+            >Overview</a
+          >
+          <a
+            href="#laws-directory"
+            class="hover:text-indigoPrimary transition-colors interactive"
+            >Laws Directory</a
+          >
+          <a
+            href="#quick-sandbox"
+            class="hover:text-indigoPrimary transition-colors interactive"
+            >Live Sandbox</a
+          >
+          <!-- <a
+            href="simulator.html"
+            class="px-4 py-2 rounded-lg bg-indigoPrimary text-white font-semibold shadow-sm hover:bg-indigo-700 transition-colors interactive"
+            >Launch Simulator 🚀</a
+          > -->
+          <a
+            href="graphs.html"
+            class="px-4 py-2 rounded-lg bg-indigoPrimary text-white font-semibold shadow-sm hover:bg-indigo-700 transition-colors interactive"
+            >Launch Simulator 🚀</a
+          >
+        </nav>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+      <section class="text-center mb-20 max-w-4xl mx-auto py-10">
+        <div
+          class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigoPrimary text-xs font-bold uppercase tracking-wider mb-6"
+        >
+          <span
+            class="w-2 h-2 rounded-full bg-indigoPrimary animate-pulse"
+          ></span>
+          Interactive Logic & Digital Design Hub
+        </div>
+        <h1
+          class="font-heading text-4xl sm:text-6xl font-bold text-slate-900 mb-6 leading-tight"
+        >
+          Master Boolean Algebra with
+          <span
+            class="text-transparent bg-clip-text bg-gradient-to-r from-indigoPrimary to-skyAccent"
+            >Real-Time Simulation</span
+          >
+        </h1>
+        <p class="text-lg sm:text-xl text-slate-600 mb-8 leading-relaxed">
+          Explore fundamental computer science logic laws interactively. Toggle
+          variable states (0 or 1), inspect truth tables, visualize logic gates,
+          and connect mathematical rules to real-world scenarios instantly.
+        </p>
+        <div class="flex flex-wrap justify-center gap-4">
+          <a
+            href="#quick-sandbox"
+            class="px-8 py-4 rounded-xl bg-indigoPrimary text-white font-semibold shadow-glow hover:bg-indigo-700 transition-all transform hover:-translate-y-0.5 interactive flex items-center gap-2"
+          >
+            Try Live Sandbox
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 7l5 5m0 0l-5 5m5-5H6"
+              ></path>
+            </svg>
+          </a>
+          <a
+            href="#laws-directory"
+            class="px-8 py-4 rounded-xl bg-white text-slate-700 font-semibold border border-slate-200 shadow-sm hover:bg-slate-50 transition-all interactive"
+          >
+            Explore All 7 Laws
+          </a>
+        </div>
+      </section>
+
+      <section id="quick-sandbox" class="mb-24 scroll-mt-24">
+        <div
+          class="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200 shadow-soft relative overflow-hidden"
+        >
+          <div
+            class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigoPrimary via-skyAccent to-logic1"
+          ></div>
+
+          <div
+            class="flex flex-col lg:flex-row items-center justify-between gap-8 mb-8 pb-6 border-b border-slate-100"
+          >
+            <div>
+              <span
+                class="text-xs font-bold text-skyAccent uppercase tracking-wider bg-skyAccent/10 px-2 py-1 rounded-md mb-2 inline-block"
+                >Quick Preview</span
+              >
+              <h2
+                class="font-heading text-2xl sm:text-3xl font-bold text-slate-900"
+              >
+                Interactive Logic Gate Tester
+              </h2>
+              <p class="text-slate-600 text-sm mt-1">
+                Test inputs A and B on standard gates right here on the home
+                page.
+              </p>
+            </div>
+
+            <div
+              class="flex items-center gap-6 bg-slateSoft px-6 py-3 rounded-2xl border border-slate-200"
+            >
+              <div class="flex items-center gap-3">
+                <span class="font-mono font-bold text-sm">A =</span>
+                <div
+                  class="relative inline-block w-12 align-middle select-none interactive"
+                >
+                  <input
+                    type="checkbox"
+                    id="hp-a"
+                    class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer z-10 transition-all duration-300"
+                  />
+                  <label
+                    for="hp-a"
+                    class="toggle-label block overflow-hidden h-6 rounded-full cursor-pointer transition-colors duration-300"
+                  ></label>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="font-mono font-bold text-sm">B =</span>
+                <div
+                  class="relative inline-block w-12 align-middle select-none interactive"
+                >
+                  <input
+                    type="checkbox"
+                    id="hp-b"
+                    class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer z-10 transition-all duration-300"
+                  />
+                  <label
+                    for="hp-b"
+                    class="toggle-label block overflow-hidden h-6 rounded-full cursor-pointer transition-colors duration-300"
+                  ></label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Gate Outcomes Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono">
+            <!-- AND Gate Card -->
+            <div
+              class="bg-slateSoft p-6 rounded-2xl border border-slate-200 flex flex-col items-center"
+            >
+              <span
+                class="text-xs font-sans font-bold text-slate-500 uppercase tracking-wider mb-2"
+                >AND Gate (A · B)</span
+              >
+              <div class="flex items-center gap-3 my-3 text-lg font-bold">
+                <span class="hp-a-disp px-3 py-1 rounded border shadow-sm"
+                  >0</span
+                >
+                <span class="text-slate-400">·</span>
+                <span class="hp-b-disp px-3 py-1 rounded border shadow-sm"
+                  >0</span
+                >
+                <span>=</span>
+                <div
+                  id="hp-and-out"
+                  class="w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl shadow-md bg-state-0 border-state-0"
+                >
+                  0
+                </div>
+              </div>
+            </div>
+
+            <!-- OR Gate Card -->
+            <div
+              class="bg-slateSoft p-6 rounded-2xl border border-slate-200 flex flex-col items-center"
+            >
+              <span
+                class="text-xs font-sans font-bold text-slate-500 uppercase tracking-wider mb-2"
+                >OR Gate (A + B)</span
+              >
+              <div class="flex items-center gap-3 my-3 text-lg font-bold">
+                <span class="hp-a-disp px-3 py-1 rounded border shadow-sm"
+                  >0</span
+                >
+                <span class="text-slate-400">+</span>
+                <span class="hp-b-disp px-3 py-1 rounded border shadow-sm"
+                  >0</span
+                >
+                <span>=</span>
+                <div
+                  id="hp-or-out"
+                  class="w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl shadow-md bg-state-0 border-state-0"
+                >
+                  0
+                </div>
+              </div>
+            </div>
+
+            <!-- XOR Gate Card -->
+            <div
+              class="bg-slateSoft p-6 rounded-2xl border border-slate-200 flex flex-col items-center"
+            >
+              <span
+                class="text-xs font-sans font-bold text-slate-500 uppercase tracking-wider mb-2"
+                >XOR Gate (A ⊕ B)</span
+              >
+              <div class="flex items-center gap-3 my-3 text-lg font-bold">
+                <span class="hp-a-disp px-3 py-1 rounded border shadow-sm"
+                  >0</span
+                >
+                <span class="text-slate-400">⊕</span>
+                <span class="hp-b-disp px-3 py-1 rounded border shadow-sm"
+                  >0</span
+                >
+                <span>=</span>
+                <div
+                  id="hp-xor-out"
+                  class="w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl shadow-md bg-state-0 border-state-0"
+                >
+                  0
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="laws-directory" class="mb-24 scroll-mt-24">
+        <div
+          class="flex flex-col md:flex-row md:items-end justify-between mb-12"
+        >
+          <div>
+            <span
+              class="text-xs font-bold text-indigoPrimary uppercase tracking-wider bg-indigo-50 px-3 py-1 rounded-md mb-2 inline-block"
+              >Curriculum Directory</span
+            >
+            <h2
+              class="font-heading text-3xl sm:text-4xl font-bold text-slate-900"
+            >
+              Comprehensive Boolean Laws
+            </h2>
+          </div>
+          <p class="text-slate-600 max-w-md mt-4 md:mt-0 text-sm">
+            Click any law to learn its formal definition, algebraic equations,
+            real-world analogies, and live simulation models.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <!-- Card 1 -->
+          <article
+            class="law-card bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between"
+          >
+            <div>
+              <div class="flex justify-between items-center mb-4">
+                <span
+                  class="text-xs font-bold uppercase tracking-wider text-skyAccent bg-skyAccent/10 px-2.5 py-1 rounded-md"
+                  >Fundamental</span
+                >
+                <span class="font-mono text-xs text-slate-400">01</span>
+              </div>
+              <h3
+                class="font-heading text-2xl font-semibold mb-3 text-slate-900"
+              >
+                Identity Law
+              </h3>
+              <p class="text-sm text-slate-600 mb-4">
+                A variable combined with a logical constant (1 for AND, 0 for
+                OR) retains its original value seamlessly.
+              </p>
+              <div
+                class="bg-slate-50 p-3 rounded-xl border border-slate-100 font-mono text-xs mb-4"
+              >
+                <div>A · 1 = A</div>
+                <div class="mt-1">A + 0 = A</div>
+              </div>
+            </div>
+            <a
+              href="simulator.html#variables"
+              class="w-full py-2.5 rounded-xl bg-slateSoft text-indigoPrimary font-semibold text-sm text-center border border-slate-200 hover:bg-indigoPrimary hover:text-white transition-all interactive block"
+            >
+              Simulate Identity Law →
+            </a>
+          </article>
+
+          <!-- Card 2 -->
+          <article
+            class="law-card bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between"
+          >
+            <div>
+              <div class="flex justify-between items-center mb-4">
+                <span
+                  class="text-xs font-bold uppercase tracking-wider text-indigoPrimary bg-indigoPrimary/10 px-2.5 py-1 rounded-md"
+                  >Fundamental</span
+                >
+                <span class="font-mono text-xs text-slate-400">02</span>
+              </div>
+              <h3
+                class="font-heading text-2xl font-semibold mb-3 text-slate-900"
+              >
+                Inverse Law
+              </h3>
+              <p class="text-sm text-slate-600 mb-4">
+                A variable combined with its exact opposite yields a constant
+                state (AND = 0, OR = 1).
+              </p>
+              <div
+                class="bg-slate-50 p-3 rounded-xl border border-slate-100 font-mono text-xs mb-4"
+              >
+                <div>A · A' = 0</div>
+                <div class="mt-1">A + A' = 1</div>
+              </div>
+            </div>
+            <a
+              href="simulator.html#variables"
+              class="w-full py-2.5 rounded-xl bg-slateSoft text-indigoPrimary font-semibold text-sm text-center border border-slate-200 hover:bg-indigoPrimary hover:text-white transition-all interactive block"
+            >
+              Simulate Inverse Law →
+            </a>
+          </article>
+
+          <!-- Card 3 -->
+          <article
+            class="law-card bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between"
+          >
+            <div>
+              <div class="flex justify-between items-center mb-4">
+                <span
+                  class="text-xs font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md"
+                  >Structural</span
+                >
+                <span class="font-mono text-xs text-slate-400">03</span>
+              </div>
+              <h3
+                class="font-heading text-2xl font-semibold mb-3 text-slate-900"
+              >
+                Commutative Law
+              </h3>
+              <p class="text-sm text-slate-600 mb-4">
+                The sequence or order of input variables does not affect the
+                final logical outcome.
+              </p>
+              <div
+                class="bg-slate-50 p-3 rounded-xl border border-slate-100 font-mono text-xs mb-4"
+              >
+                <div>A · B = B · A</div>
+                <div class="mt-1">A + B = B + A</div>
+              </div>
+            </div>
+            <a
+              href="simulator.html#structural"
+              class="w-full py-2.5 rounded-xl bg-slateSoft text-indigoPrimary font-semibold text-sm text-center border border-slate-200 hover:bg-indigoPrimary hover:text-white transition-all interactive block"
+            >
+              Simulate Commutative Law →
+            </a>
+          </article>
+
+          <!-- Card 4 -->
+          <article
+            class="law-card bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between"
+          >
+            <div>
+              <div class="flex justify-between items-center mb-4">
+                <span
+                  class="text-xs font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md"
+                  >Structural</span
+                >
+                <span class="font-mono text-xs text-slate-400">04</span>
+              </div>
+              <h3
+                class="font-heading text-2xl font-semibold mb-3 text-slate-900"
+              >
+                Associative Law
+              </h3>
+              <p class="text-sm text-slate-600 mb-4">
+                When evaluating three or more variables with the same operator,
+                grouping does not change output.
+              </p>
+              <div
+                class="bg-slate-50 p-3 rounded-xl border border-slate-100 font-mono text-xs mb-4"
+              >
+                <div>A·(B·C) = (A·B)·C</div>
+                <div class="mt-1">A+(B+C) = (A+B)+C</div>
+              </div>
+            </div>
+            <a
+              href="simulator.html#structural"
+              class="w-full py-2.5 rounded-xl bg-slateSoft text-indigoPrimary font-semibold text-sm text-center border border-slate-200 hover:bg-indigoPrimary hover:text-white transition-all interactive block"
+            >
+              Simulate Associative Law →
+            </a>
+          </article>
+
+          <!-- Card 5 -->
+          <article
+            class="law-card bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between"
+          >
+            <div>
+              <div class="flex justify-between items-center mb-4">
+                <span
+                  class="text-xs font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md"
+                  >Structural</span
+                >
+                <span class="font-mono text-xs text-slate-400">05</span>
+              </div>
+              <h3
+                class="font-heading text-2xl font-semibold mb-3 text-slate-900"
+              >
+                Distributive Law
+              </h3>
+              <p class="text-sm text-slate-600 mb-4">
+                A logical operator can be distributed across a parenthesized
+                group, just like algebraic multiplication.
+              </p>
+              <div
+                class="bg-slate-50 p-3 rounded-xl border border-slate-100 font-mono text-xs mb-4"
+              >
+                <div>A·(B+C) = (A·B)+(A·C)</div>
+                <div class="mt-1">A+(B·C) = (A+B)·(A+C)</div>
+              </div>
+            </div>
+            <a
+              href="simulator.html#structural"
+              class="w-full py-2.5 rounded-xl bg-slateSoft text-indigoPrimary font-semibold text-sm text-center border border-slate-200 hover:bg-indigoPrimary hover:text-white transition-all interactive block"
+            >
+              Simulate Distributive Law →
+            </a>
+          </article>
+
+          <!-- Card 6 -->
+          <article
+            class="law-card bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between"
+          >
+            <div>
+              <div class="flex justify-between items-center mb-4">
+                <span
+                  class="text-xs font-bold uppercase tracking-wider text-rose-600 bg-rose-50 px-2.5 py-1 rounded-md"
+                  >Optimization</span
+                >
+                <span class="font-mono text-xs text-slate-400">06</span>
+              </div>
+              <h3
+                class="font-heading text-2xl font-semibold mb-3 text-slate-900"
+              >
+                De Morgan's Theorem
+              </h3>
+              <p class="text-sm text-slate-600 mb-4">
+                Inverting a whole expression changes internal operators (AND ↔
+                OR) and negates each variable.
+              </p>
+              <div
+                class="bg-slate-50 p-3 rounded-xl border border-slate-100 font-mono text-xs mb-4"
+              >
+                <div>(A · B)' = A' + B'</div>
+                <div class="mt-1">(A + B)' = A' · B'</div>
+              </div>
+            </div>
+            <a
+              href="simulator.html#optimization"
+              class="w-full py-2.5 rounded-xl bg-slateSoft text-indigoPrimary font-semibold text-sm text-center border border-slate-200 hover:bg-indigoPrimary hover:text-white transition-all interactive block"
+            >
+              Simulate De Morgan's →
+            </a>
+          </article>
+        </div>
+      </section>
+
+      <section
+        id="overview"
+        class="mb-20 bg-indigo-900 text-white rounded-3xl p-8 sm:p-12 relative overflow-hidden"
+      >
+        <div
+          class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"
+        ></div>
+
+        <div
+          class="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
+        >
+          <div>
+            <span
+              class="text-xs font-bold text-sky-400 uppercase tracking-wider bg-sky-400/10 px-3 py-1 rounded-md mb-4 inline-block"
+              >Why Visual Logic Matters</span
+            >
+            <h2 class="font-heading text-3xl sm:text-4xl font-bold mb-6">
+              Designed for Students, Engineers & Educators
+            </h2>
+            <p class="text-indigo-200 mb-6 leading-relaxed">
+              Boolean algebra forms the foundation of digital circuits,
+              microprocessors, and software conditional logic. By pairing
+              formulas with live interactive state machines and real-world
+              analogies, abstract equations become intuitive concepts.
+            </p>
+            <ul class="space-y-3 text-indigo-100 text-sm">
+              <li class="flex items-center gap-3">
+                <svg
+                  class="w-5 h-5 text-emerald-400 flex-shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 13l4 4L19 7"
+                  ></path>
+                </svg>
+                Instant state verification with live color-coded 0 (red) and 1
+                (green) indicators.
+              </li>
+              <li class="flex items-center gap-3">
+                <svg
+                  class="w-5 h-5 text-emerald-400 flex-shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 13l4 4L19 7"
+                  ></path>
+                </svg>
+                Complete truth tables with real-time active row highlighting.
+              </li>
+              <li class="flex items-center gap-3">
+                <svg
+                  class="w-5 h-5 text-emerald-400 flex-shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 13l4 4L19 7"
+                  ></path>
+                </svg>
+                Custom cursor and sleek responsive UI engineered for seamless
+                mobile and desktop exploration.
+              </li>
+            </ul>
+          </div>
+
+          <div
+            class="bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/20 text-center"
+          >
+            <h3 class="font-heading text-2xl font-bold mb-4">
+              Ready to Dive Deeper?
+            </h3>
+            <p class="text-indigo-200 text-sm mb-6">
+              Launch the full simulator suite to test all laws, absorption
+              theorems, and circuit diagrams.
+            </p>
+            <a
+              href="simulator.html"
+              class="inline-block px-8 py-4 rounded-xl bg-white text-indigoPrimary font-bold shadow-lg hover:bg-slate-100 transition-all interactive"
+            >
+              Launch Complete Simulator ⚡
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="border-t border-slate-200 bg-white py-12">
+      <div
+        class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-slate-500"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            class="w-6 h-6 rounded bg-indigoPrimary text-white flex items-center justify-center font-mono font-bold text-xs"
+          >
+            B
+          </div>
+          <span class="font-heading font-semibold text-slate-800"
+            >Boolean Logic Explorer Studio</span
+          >
+        </div>
+        <div>
+          <p>
+            © 2026 Boolean Laws Simulator. Built for interactive digital
+            education.
+          </p>
+        </div>
+        <div class="flex gap-6">
+          <a
+            href="simulator.html"
+            class="hover:text-indigoPrimary transition-colors interactive"
+            >Simulator</a
+          >
+          <a
+            href="#laws-directory"
+            class="hover:text-indigoPrimary transition-colors interactive"
+            >Directory</a
+          >
+          <a
+            href="#quick-sandbox"
+            class="hover:text-indigoPrimary transition-colors interactive"
+            >Sandbox</a
+          >
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // --- Custom Cursor Logic ---
+        const cursorRing = document.getElementById("cursor-ring");
+        const cursorDot = document.getElementById("cursor-dot");
+        const interactives = document.querySelectorAll(
+          "a, button, input, .interactive",
+        );
+
+        document.addEventListener("mousemove", (e) => {
+          requestAnimationFrame(() => {
+            cursorRing.style.transform = `translate(calc(${e.clientX}px - 50%), calc(${e.clientY}px - 50%))`;
+            cursorDot.style.transform = `translate(calc(${e.clientX}px - 50%), calc(${e.clientY}px - 50%))`;
+          });
+        });
+
+        interactives.forEach((el) => {
+          el.addEventListener("mouseenter", () =>
+            document.body.classList.add("hovering-interactive"),
+          );
+          el.addEventListener("mouseleave", () =>
+            document.body.classList.remove("hovering-interactive"),
+          );
+        });
+
+        // --- Quick Sandbox Widget Logic ---
+        const hpA = document.getElementById("hp-a");
+        const hpB = document.getElementById("hp-b");
+
+        const updateHpSandbox = () => {
+          const a = hpA.checked ? 1 : 0;
+          const b = hpB.checked ? 1 : 0;
+
+          // Update A and B label displays
+          document.querySelectorAll(".hp-a-disp").forEach((el) => {
+            el.textContent = a;
+            el.className = `hp-a-disp px-3 py-1 rounded border shadow-sm state-${a}`;
+          });
+          document.querySelectorAll(".hp-b-disp").forEach((el) => {
+            el.textContent = b;
+            el.className = `hp-b-disp px-3 py-1 rounded border shadow-sm state-${b}`;
+          });
+
+          // AND Gate Output
+          const andOut = a & b;
+          const andEl = document.getElementById("hp-and-out");
+          andEl.textContent = andOut;
+          andEl.className = `w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl shadow-md bg-state-${andOut} border-state-${andOut}`;
+
+          // OR Gate Output
+          const orOut = a | b;
+          const orEl = document.getElementById("hp-or-out");
+          orEl.textContent = orOut;
+          orEl.className = `w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl shadow-md bg-state-${orOut} border-state-${orOut}`;
+
+          // XOR Gate Output
+          const xorOut = a ^ b;
+          const xorEl = document.getElementById("hp-xor-out");
+          xorEl.textContent = xorOut;
+          xorEl.className = `w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl shadow-md bg-state-${xorOut} border-state-${xorOut}`;
+        };
+
+        if (hpA && hpB) {
+          hpA.addEventListener("change", updateHpSandbox);
+          hpB.addEventListener("change", updateHpSandbox);
+          updateHpSandbox(); // Init
+        }
+      });
+    </script>
+  </body>
+</html>

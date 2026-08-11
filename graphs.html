@@ -1,0 +1,1199 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Boolean Laws Explorer | Interactive Logic</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Browser Tab Icon: Logic Gate & Microchip Symbol -->
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234F46E5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='2' y='2' width='20' height='20' rx='5' ry='5'/><path d='M7 8h3a3 3 0 0 1 0 6H7'/><line x1='14' y1='8' x2='17' y2='8'/><line x1='14' y1='16' x2='17' y2='16'/><line x1='14' y1='12' x2='17' y2='12'/></svg>"
+    />
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              slateLight: "#F8FAFC",
+              indigoPrimary: "#4F46E5",
+              skyAccent: "#0EA5E9",
+              logic1: "#10B981", // Emerald Green
+              logic0: "#EF4444", // Coral Red
+              textDark: "#1E293B",
+              textMuted: "#64748B",
+            },
+            fontFamily: {
+              sans: ['"Plus Jakarta Sans"', "sans-serif"],
+              heading: ["Outfit", "sans-serif"],
+              mono: ['"Fira Code"', "monospace"],
+            },
+            boxShadow: {
+              soft: "0 4px 20px -2px rgba(0, 0, 0, 0.05)",
+              "glow-1": "0 0 15px rgba(16, 185, 129, 0.4)",
+              "glow-0": "0 0 15px rgba(239, 68, 68, 0.4)",
+              "glow-accent": "0 0 15px rgba(14, 165, 233, 0.4)",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f8fafc;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+
+      body {
+        background-color: #f8fafc;
+        color: #1e293b;
+        font-family: "Plus Jakarta Sans", sans-serif;
+        cursor: none;
+        overflow-x: hidden;
+      }
+
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        font-family: "Outfit", sans-serif;
+      }
+
+      code,
+      .math-expr {
+        font-family: "Fira Code", monospace;
+      }
+
+      #custom-cursor {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 32px;
+        height: 32px;
+        border: 2px solid #4f46e5;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        z-index: 9999;
+        transition:
+          width 0.2s,
+          height 0.2s,
+          border-color 0.2s,
+          background-color 0.2s;
+        mix-blend-mode: multiply;
+      }
+
+      #custom-cursor-dot {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 6px;
+        height: 6px;
+        background-color: #0ea5e9;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        z-index: 10000;
+      }
+
+      .cursor-hover #custom-cursor {
+        width: 48px;
+        height: 48px;
+        background-color: rgba(14, 165, 233, 0.1);
+        border-color: #0ea5e9;
+      }
+
+      .logic-btn {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .logic-btn::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 120%;
+        height: 120%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: translate(-50%, -50%) scale(0);
+        border-radius: 50%;
+        transition: transform 0.4s ease-out;
+      }
+
+      .logic-btn:active::after {
+        transform: translate(-50%, -50%) scale(1);
+        transition: 0s;
+      }
+
+      .state-1 {
+        background-color: #10b981;
+        color: white;
+        box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+        border-color: #059669;
+      }
+
+      .state-0 {
+        background-color: #ef4444;
+        color: white;
+        box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+        border-color: #dc2626;
+      }
+
+      .state-var {
+        background-color: #f1f5f9;
+        color: #475569;
+        border: 2px solid #cbd5e1;
+      }
+
+      .state-var.active {
+        background-color: #e0e7ff;
+        color: #4f46e5;
+        border-color: #818cf8;
+        box-shadow: 0 0 10px rgba(79, 70, 229, 0.2);
+      }
+
+      .circuit-container {
+        position: relative;
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
+        overflow: hidden;
+      }
+
+      .wire {
+        fill: none;
+        stroke-width: 3;
+        transition:
+          stroke 0.3s ease,
+          stroke-dashoffset 0.5s linear;
+      }
+
+      .wire-0 {
+        stroke: #ef4444;
+        opacity: 0.5;
+      }
+
+      .wire-1 {
+        stroke: #10b981;
+        stroke-dasharray: 10 5;
+        animation: flow 1s linear infinite;
+      }
+
+      .wire-neutral {
+        stroke: #cbd5e1;
+      }
+
+      @keyframes flow {
+        from {
+          stroke-dashoffset: 15;
+        }
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+
+      .gate-body {
+        fill: #f8fafc;
+        stroke: #4f46e5;
+        stroke-width: 2;
+        transition: all 0.3s ease;
+      }
+
+      .gate-active {
+        fill: #eef2ff;
+        stroke: #10b981;
+        filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.3));
+      }
+
+      .analogy-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border-left: 4px solid #0ea5e9;
+        transition:
+          transform 0.3s ease,
+          box-shadow 0.3s ease;
+      }
+      .analogy-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+      }
+
+      .tab-btn {
+        position: relative;
+      }
+      .tab-btn::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background-color: #4f46e5;
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+        transform-origin: right;
+      }
+      .tab-btn[aria-selected="true"]::after {
+        transform: scaleX(1);
+        transform-origin: left;
+      }
+      .tab-btn[aria-selected="true"] {
+        color: #4f46e5;
+        font-weight: 600;
+      }
+
+      .interactive-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+      @media (min-width: 1024px) {
+        .interactive-grid {
+          grid-template-columns: 350px 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body class="antialiased min-h-screen flex flex-col">
+    <div id="custom-cursor"></div>
+    <div id="custom-cursor-dot"></div>
+
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16 items-center">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-8 h-8 rounded-lg bg-indigoPrimary text-white flex items-center justify-center font-mono font-bold text-lg shadow-sm"
+            >
+              &
+            </div>
+            <div>
+              <h1
+                class="text-xl font-heading font-bold text-textDark tracking-tight"
+              >
+                Boolean Laws
+              </h1>
+              <p
+                class="text-xs font-sans text-textMuted uppercase tracking-wider"
+              >
+                Interactive Explorer
+              </p>
+            </div>
+          </div>
+          <div
+            class="hidden sm:flex items-center space-x-1 font-mono text-sm text-slate-500"
+          >
+            <span
+              class="px-2 py-1 bg-slate-100 rounded text-logic1 font-semibold"
+              >1 = True (On)</span
+            >
+            <span
+              class="px-2 py-1 bg-slate-100 rounded text-logic0 font-semibold"
+              >0 = False (Off)</span
+            >
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main
+      class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col lg:flex-row gap-8"
+    >
+      <aside class="w-full lg:w-64 flex-shrink-0">
+        <div
+          class="bg-white rounded-xl shadow-soft border border-slate-200 p-4 sticky top-24"
+        >
+          <h2
+            class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 px-2"
+          >
+            Select a Law
+          </h2>
+          <nav class="space-y-1" id="law-nav">
+            <!-- Nav items generated via JS -->
+          </nav>
+        </div>
+      </aside>
+
+      <section class="flex-grow min-w-0" id="main-content">
+        <div class="mb-8">
+          <div class="flex items-center gap-4 mb-2">
+            <h2
+              class="text-3xl font-heading font-bold text-textDark"
+              id="law-title"
+            >
+              Identity Law
+            </h2>
+            <span
+              class="px-3 py-1 bg-indigo-100 text-indigoPrimary rounded-full text-sm font-semibold font-mono"
+              id="law-expr"
+            >
+              A · 1 = A
+            </span>
+          </div>
+          <p class="text-textMuted text-lg" id="law-desc">
+            Any variable ANDed with 1 equals the variable itself.
+          </p>
+        </div>
+
+        <div class="border-b border-slate-200 mb-6 flex gap-8" role="tablist">
+          <button
+            class="tab-btn pb-3 text-lg font-sans text-slate-500 hover:text-indigoPrimary interactive-element transition-colors"
+            role="tab"
+            aria-selected="true"
+            id="tab-and"
+            onclick="switchOperation('AND')"
+          >
+            AND Operation (·)
+          </button>
+          <button
+            class="tab-btn pb-3 text-lg font-sans text-slate-500 hover:text-indigoPrimary interactive-element transition-colors"
+            role="tab"
+            aria-selected="false"
+            id="tab-or"
+            onclick="switchOperation('OR')"
+          >
+            OR Operation (+)
+          </button>
+        </div>
+
+        <div class="interactive-grid">
+          <div class="flex flex-col gap-6">
+            <div
+              class="bg-white rounded-xl shadow-soft border border-slate-200 p-6"
+            >
+              <h3
+                class="font-heading font-semibold text-lg mb-4 flex items-center gap-2"
+              >
+                <svg
+                  class="w-5 h-5 text-indigoPrimary"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                  ></path>
+                </svg>
+                Input Controls
+              </h3>
+
+              <div id="controls-container" class="space-y-4">
+                <!-- Controls injected by JS -->
+              </div>
+
+              <div class="mt-6 pt-6 border-t border-slate-100">
+                <div class="flex justify-between items-center">
+                  <span class="font-sans font-medium text-slate-600"
+                    >Output (<span class="font-mono text-indigoPrimary">Q</span
+                    >):</span
+                  >
+                  <div
+                    id="output-display"
+                    class="px-4 py-2 rounded-lg font-mono font-bold text-xl state-0 transition-colors w-24 text-center"
+                  >
+                    0
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="analogy-card rounded-xl p-6 shadow-sm">
+              <h3
+                class="font-heading font-semibold text-lg mb-3 flex items-center gap-2 text-skyAccent"
+              >
+                <svg
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                  ></path>
+                </svg>
+                Real-World Analogy
+              </h3>
+              <p
+                id="analogy-text"
+                class="text-slate-600 leading-relaxed font-sans"
+              >
+                <!-- Analogy injected by JS -->
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="circuit-container flex flex-col items-center justify-center min-h-[400px]"
+          >
+            <div class="absolute top-4 left-4 text-xs font-mono text-slate-400">
+              CIRCUIT_DIAGRAM
+            </div>
+
+            <svg
+              id="circuit-svg"
+              width="100%"
+              height="100%"
+              viewBox="0 0 500 300"
+              class="w-full h-full max-h-[400px]"
+            >
+              <!-- SVG content injected by JS -->
+            </svg>
+
+            <div class="absolute bottom-4 left-0 w-full text-center">
+              <div
+                class="inline-block bg-slate-50 px-4 py-2 rounded-lg border border-slate-200 font-mono text-lg shadow-sm"
+                id="equation-display"
+              >
+                <!-- Equation injected by JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const cursor = document.getElementById("custom-cursor");
+      const cursorDot = document.getElementById("custom-cursor-dot");
+
+      document.addEventListener("mousemove", (e) => {
+        cursor.style.left = e.clientX + "px";
+        cursor.style.top = e.clientY + "px";
+        cursorDot.style.left = e.clientX + "px";
+        cursorDot.style.top = e.clientY + "px";
+      });
+
+      const addCursorHover = () => document.body.classList.add("cursor-hover");
+      const removeCursorHover = () =>
+        document.body.classList.remove("cursor-hover");
+
+      function bindInteractiveElements() {
+        document
+          .querySelectorAll("button, a, .interactive-element")
+          .forEach((el) => {
+            el.removeEventListener("mouseenter", addCursorHover);
+            el.removeEventListener("mouseleave", removeCursorHover);
+            el.addEventListener("mouseenter", addCursorHover);
+            el.addEventListener("mouseleave", removeCursorHover);
+          });
+      }
+
+      const booleanLaws = {
+        identity: {
+          id: "identity",
+          name: "Identity Law",
+          desc: "A term combined with a specific constant retains its value.",
+          and: {
+            expr: "A · 1 = A",
+            analogy:
+              "Imagine a water valve (A) connected in series with a pipe that is permanently open (1). If you open the valve (A=1), water flows (Output=1). If you close it (A=0), water stops (Output=0). The permanently open pipe doesn't change the outcome; the flow depends entirely on valve A.",
+            vars: ["A"],
+            constants: { B: 1 },
+            eval: (state) => state.A && 1,
+            draw: (state) => drawGate("AND", state.A, 1, "A", "1"),
+          },
+          or: {
+            expr: "A + 0 = A",
+            analogy:
+              "Imagine an automatic door (A) and a brick wall next to it (0) acting as two parallel paths into a building. You can never walk through the wall (0). So, your ability to enter depends entirely on whether the door is open (A=1) or closed (A=0).",
+            vars: ["A"],
+            constants: { B: 0 },
+            eval: (state) => state.A || 0,
+            draw: (state) => drawGate("OR", state.A, 0, "A", "0"),
+          },
+        },
+        inverse: {
+          id: "inverse",
+          name: "Inverse Law (Complement)",
+          desc: "A variable combined with its logical inverse results in a constant (0 for AND, 1 for OR).",
+          and: {
+            expr: "A · A' = 0",
+            analogy:
+              "Imagine a circuit with a switch (A) connected in series with its own inverted switch (A'). If you turn the switch ON (A=1), the inverter makes it OFF (A'=0). If you turn the switch OFF (A=0), the inverter makes it ON (A'=1). Because one of them is always open/closed in opposition, electricity can never flow through both in series. The bulb stays dark (Output=0)!",
+            vars: ["A"],
+            eval: (state) => state.A && (state.A === 1 ? 0 : 1),
+            draw: (state) => drawInverse("AND", state.A),
+          },
+          or: {
+            expr: "A + A' = 1",
+            analogy:
+              "Imagine two parallel paths to light a lamp: path A and its inverse path A'. Since A' is always the exact opposite of A, one of these two paths is guaranteed to be active at any given moment. Thus, the lamp is always lit (Output=1) regardless of your switch setting.",
+            vars: ["A"],
+            eval: (state) => state.A || (state.A === 1 ? 0 : 1),
+            draw: (state) => drawInverse("OR", state.A),
+          },
+        },
+        nullLaw: {
+          id: "nullLaw",
+          name: "Null / Annulment / Domination",
+          desc: "A term combined with a specific constant results in a predictable constant outcome.",
+          and: {
+            expr: "A · 0 = 0",
+            analogy:
+              "Imagine a coffee maker connected to a smart plug (A), but the main power cord is cut (0) in series. Even if you turn on the smart plug via your app (A=1), the coffee maker will never turn on (Output=0) because the circuit is broken by the cut cord.",
+            vars: ["A"],
+            constants: { B: 0 },
+            eval: (state) => state.A && 0,
+            draw: (state) => drawGate("AND", state.A, 0, "A", "0"),
+          },
+          or: {
+            expr: "A + 1 = 1",
+            analogy:
+              "Imagine a room with a light switch (A) and a large skylight letting in blazing sun (1). Whether you turn the switch on (A=1) or off (A=0), the room is always bright (Output=1) because the sun is always shining.",
+            vars: ["A"],
+            constants: { B: 1 },
+            eval: (state) => state.A || 1,
+            draw: (state) => drawGate("OR", state.A, 1, "A", "1"),
+          },
+        },
+        commutative: {
+          id: "commutative",
+          name: "Commutative Law",
+          desc: "The order in which variables are combined does not affect the output.",
+          and: {
+            expr: "A · B = B · A",
+            analogy:
+              "Think of two security doors in a hallway. You need keycard A to open the first, and biometric scan B to open the second. You only get through if both are true. It doesn't matter if the biometric scanner is first (B then A) or the card reader is first (A then B); you still need both.",
+            vars: ["A", "B"],
+            eval: (state) => state.A && state.B,
+            draw: (state) => drawEquivalence("AND", state.A, state.B),
+          },
+          or: {
+            expr: "A + B = B + A",
+            analogy:
+              "You can pay for your groceries with Cash (A) OR Credit Card (B). The cashier accepts the payment regardless of whether you offer Cash first or the Card first. The order of presenting the options doesn't change the successful payment.",
+            vars: ["A", "B"],
+            eval: (state) => state.A || state.B,
+            draw: (state) => drawEquivalence("OR", state.A, state.B),
+          },
+        },
+        associative: {
+          id: "associative",
+          name: "Associative Law",
+          desc: "When combining three or more variables with the same operation, grouping does not matter.",
+          and: {
+            expr: "(A · B) · C = A · (B · C)",
+            analogy:
+              "Imagine three bridges in a row connecting islands. Bridge A, B, and C. You need all three to be intact to cross. Whether a maintenance team inspects (A and B) together first, then C, OR they inspect A first, then (B and C) together, the condition for you crossing remains: all three must be intact.",
+            vars: ["A", "B", "C"],
+            eval: (state) => state.A && state.B && state.C,
+            draw: (state) => drawAssociative("AND", state),
+          },
+          or: {
+            expr: "(A + B) + C = A + (B + C)",
+            analogy:
+              "A student passes if they do well on Homework (A), OR the Midterm (B), OR the Final (C). Whether the teacher calculates the grade by checking (Homework or Midterm) first then looking at Final, OR checks Homework first then looks at (Midterm or Final) together, if any one is good, they pass.",
+            vars: ["A", "B", "C"],
+            eval: (state) => state.A || state.B || state.C,
+            draw: (state) => drawAssociative("OR", state),
+          },
+        },
+        distributive: {
+          id: "distributive",
+          name: "Distributive Law",
+          desc: "Allows the factoring or expanding of expressions, similar to standard algebra.",
+          and: {
+            expr: "A · (B + C) = (A · B) + (A · C)",
+            analogy:
+              "To enter a VIP club, you must be a Member (A) AND either be on the Guestlist (B) OR pay Cover (C). This is exactly the same as saying: You enter if you are a (Member AND on Guestlist) OR you are a (Member AND pay Cover).",
+            vars: ["A", "B", "C"],
+            eval: (state) => state.A && (state.B || state.C),
+            draw: (state) => drawDistributive("AND", state),
+          },
+          or: {
+            expr: "A + (B · C) = (A + B) · (A + C)",
+            analogy:
+              "You get a discount if you are Senior (A) OR if you (buy a Bundle (B) AND have a Coupon (C)). This logically equals: (Being Senior OR buying Bundle) AND (Being Senior OR having Coupon).",
+            vars: ["A", "B", "C"],
+            eval: (state) => state.A || (state.B && state.C),
+            draw: (state) => drawDistributive("OR", state),
+          },
+        },
+        demorgan: {
+          id: "demorgan",
+          name: "De Morgan's Theorem",
+          desc: "Breaking a line changes the sign. Inverting an operation inverts the variables and swaps AND/OR.",
+          and: {
+            expr: "~(A · B) = ~A + ~B",
+            analogy:
+              "I will NOT eat a (Burger AND Fries). This means either I will NOT eat a Burger, OR I will NOT eat Fries (or neither). If I eat just one, or neither, the statement holds true.",
+            vars: ["A", "B"],
+            eval: (state) => !(state.A && state.B),
+            draw: (state) => drawDeMorgan("NAND", state),
+          },
+          or: {
+            expr: "~(A + B) = ~A · ~B",
+            analogy:
+              "I will NOT travel to (Paris OR London). This means I will NOT travel to Paris, AND I will NOT travel to London. Both must be false for me to stay home.",
+            vars: ["A", "B"],
+            eval: (state) => !(state.A || state.B),
+            draw: (state) => drawDeMorgan("NOR", state),
+          },
+        },
+        absorption: {
+          id: "absorption",
+          name: "Absorption Law",
+          desc: "A complicated expression can be reduced by absorbing like terms.",
+          and: {
+            expr: "A · (A + B) = A",
+            analogy:
+              "To get a job, you must have a Degree (A), AND you must have (a Degree (A) OR Experience (B)). Since having a degree is mandatory in the first part, the second part is redundant. If you have A, the whole thing is true.",
+            vars: ["A", "B"],
+            eval: (state) => state.A && (state.A || state.B),
+            draw: (state) => drawAbsorption("AND", state),
+          },
+          or: {
+            expr: "A + (A · B) = A",
+            analogy:
+              "You get a prize if you Win the race (A), OR if you (Win the race (A) AND break a record (B)). If you win (A), you get the prize anyway, regardless of the record.",
+            vars: ["A", "B"],
+            eval: (state) => state.A || (state.A && state.B),
+            draw: (state) => drawAbsorption("OR", state),
+          },
+        },
+      };
+
+      let currentLawId = "identity";
+      let currentOperation = "AND";
+      let currentVariables = { A: 0, B: 0, C: 0 };
+
+      function renderNavigation() {
+        const navContainer = document.getElementById("law-nav");
+        navContainer.innerHTML = "";
+
+        Object.values(booleanLaws).forEach((law) => {
+          const btn = document.createElement("button");
+          btn.className = `w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-all interactive-element ${
+            law.id === currentLawId
+              ? "bg-indigo-50 text-indigoPrimary shadow-sm border border-indigo-100"
+              : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+          }`;
+          btn.innerText = law.name;
+          btn.onclick = () => selectLaw(law.id);
+          navContainer.appendChild(btn);
+        });
+        bindInteractiveElements();
+      }
+
+      function selectLaw(lawId) {
+        currentLawId = lawId;
+        renderNavigation();
+        updateView();
+      }
+
+      function switchOperation(op) {
+        currentOperation = op;
+        document
+          .getElementById("tab-and")
+          .setAttribute("aria-selected", op === "AND");
+        document
+          .getElementById("tab-or")
+          .setAttribute("aria-selected", op === "OR");
+        updateView();
+      }
+
+      function toggleVariable(varName) {
+        currentVariables[varName] = currentVariables[varName] === 1 ? 0 : 1;
+        updateView();
+      }
+
+      function updateView() {
+        const lawData = booleanLaws[currentLawId];
+        const opData = lawData[currentOperation.toLowerCase()];
+
+        document.getElementById("law-title").innerText = lawData.name;
+        document.getElementById("law-expr").innerText = opData.expr;
+        document.getElementById("law-desc").innerText = lawData.desc;
+        document.getElementById("analogy-text").innerText = opData.analogy;
+
+        const controlsContainer = document.getElementById("controls-container");
+        controlsContainer.innerHTML = "";
+
+        opData.vars.forEach((v) => {
+          const val = currentVariables[v];
+          const btn = document.createElement("button");
+          btn.className = `interactive-element flex items-center justify-between p-3 rounded-lg border-2 font-mono font-bold w-full sm:w-64 transition-all logic-btn ${val === 1 ? "state-1" : "state-var"}`;
+          btn.onclick = () => toggleVariable(v);
+
+          btn.innerHTML = `
+            <span>Input ${v}</span>
+            <span class="w-8 h-8 rounded bg-white bg-opacity-20 flex items-center justify-center">${val}</span>
+          `;
+          controlsContainer.appendChild(btn);
+        });
+
+        const result = opData.eval(currentVariables) ? 1 : 0;
+        const outputDisplay = document.getElementById("output-display");
+        outputDisplay.innerText = result;
+        outputDisplay.className = `px-4 py-2 rounded-lg font-mono font-bold text-xl transition-all w-24 text-center text-white ${result === 1 ? "state-1" : "state-0"}`;
+
+        const svg = document.getElementById("circuit-svg");
+        svg.innerHTML = "";
+        opData.draw(currentVariables);
+
+        buildVisualEquation(
+          opData.expr,
+          currentVariables,
+          opData.constants || {},
+          result,
+        );
+        bindInteractiveElements();
+      }
+
+      function buildVisualEquation(exprStr, vars, constants = {}, result) {
+        const eqContainer = document.getElementById("equation-display");
+        let coloredExpr = exprStr;
+
+        ["A", "B", "C"].forEach((v) => {
+          if (vars.hasOwnProperty(v)) {
+            const val = vars[v];
+            const colorClass = val === 1 ? "text-logic1" : "text-logic0";
+            const regex = new RegExp(`\\b${v}\\b`, "g");
+            coloredExpr = coloredExpr.replace(
+              regex,
+              `<span class="${colorClass}">${val}</span>`,
+            );
+          }
+        });
+
+        for (const [key, val] of Object.entries(constants)) {
+          coloredExpr = coloredExpr.replace(
+            /\b1\b/g,
+            `<span class="text-logic1">1</span>`,
+          );
+          coloredExpr = coloredExpr.replace(
+            /\b0\b/g,
+            `<span class="text-logic0">0</span>`,
+          );
+        }
+
+        const resColor = result === 1 ? "text-logic1" : "text-logic0";
+        if (exprStr.includes("=")) {
+          eqContainer.innerHTML = `${coloredExpr} &nbsp; ➔ &nbsp; <span class="${resColor}">${result}</span>`;
+        } else {
+          eqContainer.innerHTML = `${coloredExpr} = <span class="${resColor}">${result}</span>`;
+        }
+      }
+
+      const svgNS = "http://www.w3.org/2000/svg";
+
+      function createSVGElement(name, attrs = {}) {
+        const el = document.createElementNS(svgNS, name);
+        for (let k in attrs) {
+          el.setAttribute(k, attrs[k]);
+        }
+        return el;
+      }
+
+      function drawWire(x1, y1, x2, y2, state, svgContext) {
+        const wireClass =
+          state === 1
+            ? "wire wire-1"
+            : state === 0
+              ? "wire wire-0"
+              : "wire wire-neutral";
+        let pathData = `M ${x1} ${y1}`;
+        if (y1 !== y2 && Math.abs(x1 - x2) > 20) {
+          const midX = x1 + (x2 - x1) / 2;
+          pathData += ` L ${midX} ${y1} L ${midX} ${y2} L ${x2} ${y2}`;
+        } else {
+          pathData += ` L ${x2} ${y2}`;
+        }
+
+        const path = createSVGElement("path", {
+          d: pathData,
+          class: wireClass,
+        });
+        svgContext.appendChild(path);
+      }
+
+      function drawLabel(x, y, text, svgContext, isOutput = false, val = null) {
+        const textEl = createSVGElement("text", {
+          x: x,
+          y: y,
+          "font-family": "Fira Code",
+          "font-size": isOutput ? "16" : "14",
+          "font-weight": "bold",
+          fill: "#64748B",
+          "text-anchor": isOutput ? "start" : "end",
+          "dominant-baseline": "middle",
+        });
+        textEl.textContent = text;
+        svgContext.appendChild(textEl);
+
+        if (val !== null) {
+          const valEl = createSVGElement("text", {
+            x: isOutput ? x + 20 : x - 20,
+            y: y,
+            "font-family": "Fira Code",
+            "font-size": "14",
+            "font-weight": "bold",
+            fill: val === 1 ? "#10B981" : "#EF4444",
+            "text-anchor": isOutput ? "start" : "end",
+            "dominant-baseline": "middle",
+          });
+          valEl.textContent = `[${val}]`;
+          svgContext.appendChild(valEl);
+        }
+      }
+
+      function drawGateShape(type, x, y, isActive, svgContext) {
+        const g = createSVGElement("g", { transform: `translate(${x}, ${y})` });
+        const gateClass = isActive ? "gate-body gate-active" : "gate-body";
+
+        if (type === "AND" || type === "NAND") {
+          const path = createSVGElement("path", {
+            d: "M 0 -20 L 20 -20 A 20 20 0 0 1 20 20 L 0 20 Z",
+            class: gateClass,
+          });
+          g.appendChild(path);
+
+          if (type === "NAND") {
+            const circle = createSVGElement("circle", {
+              cx: 44,
+              cy: 0,
+              r: 4,
+              fill: "#F8FAFC",
+              stroke: isActive ? "#10B981" : "#4F46E5",
+              "stroke-width": 2,
+            });
+            g.appendChild(circle);
+          }
+        } else if (type === "OR" || type === "NOR") {
+          const path = createSVGElement("path", {
+            d: "M 0 -20 Q 15 -20 30 0 Q 15 20 0 20 Q 10 0 0 -20",
+            class: gateClass,
+          });
+          g.appendChild(path);
+
+          if (type === "NOR") {
+            const circle = createSVGElement("circle", {
+              cx: 34,
+              cy: 0,
+              r: 4,
+              fill: "#F8FAFC",
+              stroke: isActive ? "#10B981" : "#4F46E5",
+              "stroke-width": 2,
+            });
+            g.appendChild(circle);
+          }
+        } else if (type === "NOT") {
+          const path = createSVGElement("polygon", {
+            points: "0,-15 25,0 0,15",
+            class: gateClass,
+          });
+          const circle = createSVGElement("circle", {
+            cx: 29,
+            cy: 0,
+            r: 4,
+            fill: "#F8FAFC",
+            stroke: isActive ? "#10B981" : "#4F46E5",
+            "stroke-width": 2,
+          });
+          g.appendChild(path);
+          g.appendChild(circle);
+        }
+
+        const label = createSVGElement("text", {
+          x: type.includes("N") ? (type === "NOT" ? 8 : 15) : 15,
+          y: 1,
+          "font-family": "Outfit",
+          "font-size": "10",
+          "font-weight": "bold",
+          fill: isActive ? "#059669" : "#4F46E5",
+          "text-anchor": "middle",
+          "dominant-baseline": "middle",
+        });
+        label.textContent = type;
+        g.appendChild(label);
+
+        svgContext.appendChild(g);
+      }
+
+      function drawGate(type, val1, val2, label1, label2) {
+        const svg = document.getElementById("circuit-svg");
+        const result = type === "AND" ? val1 && val2 : val1 || val2;
+
+        drawWire(100, 100, 200, 100, val1, svg);
+        drawWire(100, 180, 200, 180, val2, svg);
+
+        drawWire(200, 100, 250, 130, val1, svg);
+        drawWire(200, 180, 250, 150, val2, svg);
+
+        drawLabel(90, 100, label1, svg, false, val1);
+        drawLabel(90, 180, label2, svg, false, val2);
+
+        drawGateShape(type, 250, 140, result, svg);
+
+        drawWire(290, 140, 400, 140, result, svg);
+        drawLabel(410, 140, "Q", svg, true, result);
+      }
+
+      function drawInverse(type, valA) {
+        const svg = document.getElementById("circuit-svg");
+        const notA = valA === 1 ? 0 : 1;
+        const result = type === "AND" ? valA && notA : valA || notA;
+
+        drawLabel(80, 100, "A", svg, false, valA);
+        drawWire(90, 100, 140, 100, valA, svg);
+
+        drawGateShape("NOT", 140, 85, notA, svg);
+        drawWire(175, 100, 230, 100, notA, svg);
+
+        drawWire(90, 180, 230, 180, valA, svg);
+        drawLabel(80, 180, "A", svg, false, valA);
+
+        drawWire(230, 100, 260, 130, notA, svg);
+        drawWire(230, 180, 260, 150, valA, svg);
+
+        drawGateShape(type, 260, 140, result, svg);
+        drawWire(300, 140, 400, 140, result, svg);
+        drawLabel(410, 140, "Q", svg, true, result);
+      }
+
+      function drawEquivalence(type, valA, valB) {
+        const svg = document.getElementById("circuit-svg");
+        const result = type === "AND" ? valA && valB : valA || valB;
+
+        drawWire(50, 60, 120, 60, valA, svg);
+        drawWire(50, 100, 120, 100, valB, svg);
+        drawLabel(40, 60, "A", svg, false, valA);
+        drawLabel(40, 100, "B", svg, false, valB);
+        drawGateShape(type, 120, 80, result, svg);
+        drawWire(160, 80, 200, 80, result, svg);
+
+        const eqText = createSVGElement("text", {
+          x: 250,
+          y: 140,
+          "font-size": "24",
+          "font-family": "Fira Code",
+          "text-anchor": "middle",
+        });
+        eqText.textContent = "=";
+        svg.appendChild(eqText);
+
+        drawWire(300, 180, 370, 180, valB, svg);
+        drawWire(300, 220, 370, 220, valA, svg);
+        drawLabel(290, 180, "B", svg, false, valB);
+        drawLabel(290, 220, "A", svg, false, valA);
+        drawGateShape(type, 370, 200, result, svg);
+        drawWire(410, 200, 450, 200, result, svg);
+      }
+
+      function drawAssociative(type, state) {
+        const svg = document.getElementById("circuit-svg");
+        const { A, B, C } = state;
+        const res1 = type === "AND" ? A && B : A || B;
+        const final = type === "AND" ? res1 && C : res1 || C;
+
+        drawLabel(30, 40, "A", svg, false, A);
+        drawLabel(30, 80, "B", svg, false, B);
+        drawWire(40, 40, 80, 40, A, svg);
+        drawWire(40, 80, 80, 80, B, svg);
+
+        drawGateShape(type, 80, 60, res1, svg);
+        drawWire(120, 60, 160, 60, res1, svg);
+
+        drawLabel(30, 120, "C", svg, false, C);
+        drawWire(40, 120, 160, 100, C, svg);
+
+        drawGateShape(type, 160, 80, final, svg);
+        drawWire(200, 80, 230, 80, final, svg);
+
+        const eqText = createSVGElement("text", {
+          x: 250,
+          y: 150,
+          "font-size": "20",
+          "font-weight": "bold",
+          "text-anchor": "middle",
+        });
+        eqText.textContent = "=";
+        svg.appendChild(eqText);
+
+        const res2 = type === "AND" ? B && C : B || C;
+
+        drawLabel(280, 180, "B", svg, false, B);
+        drawLabel(280, 220, "C", svg, false, C);
+        drawWire(290, 180, 330, 180, B, svg);
+        drawWire(290, 220, 330, 220, C, svg);
+
+        drawGateShape(type, 330, 200, res2, svg);
+        drawWire(370, 200, 410, 240, res2, svg);
+
+        drawLabel(280, 260, "A", svg, false, A);
+        drawWire(290, 260, 410, 260, A, svg);
+
+        drawGateShape(type, 410, 250, final, svg);
+        drawWire(450, 250, 480, 250, final, svg);
+      }
+
+      function drawDistributive(type, state) {
+        const svg = document.getElementById("circuit-svg");
+        const { A, B, C } = state;
+        const innerType = type === "AND" ? "OR" : "AND";
+        const innerRes = innerType === "AND" ? B && C : B || C;
+        const final = type === "AND" ? A && innerRes : A || innerRes;
+
+        drawLabel(40, 50, "B", svg, false, B);
+        drawLabel(40, 90, "C", svg, false, C);
+        drawWire(50, 50, 100, 50, B, svg);
+        drawWire(50, 90, 100, 90, C, svg);
+        drawGateShape(innerType, 100, 70, innerRes, svg);
+        drawWire(130, 70, 170, 70, innerRes, svg);
+
+        drawLabel(40, 110, "A", svg, false, A);
+        drawWire(50, 110, 170, 110, A, svg);
+        drawGateShape(type, 170, 90, final, svg);
+        drawWire(210, 90, 240, 90, final, svg);
+
+        const eqText = createSVGElement("text", {
+          x: 250,
+          y: 150,
+          "font-size": "20",
+          "font-weight": "bold",
+          "text-anchor": "middle",
+        });
+        eqText.textContent = "=";
+        svg.appendChild(eqText);
+
+        const rightTopRes = type === "AND" ? A && B : A || B;
+        const rightBotRes = type === "AND" ? A && C : A || C;
+
+        drawLabel(280, 160, "A", svg, false, A);
+        drawLabel(280, 190, "B", svg, false, B);
+        drawWire(290, 160, 330, 160, A, svg);
+        drawWire(290, 190, 330, 190, B, svg);
+        drawGateShape(type, 330, 175, rightTopRes, svg);
+        drawWire(370, 175, 410, 195, rightTopRes, svg);
+
+        drawLabel(280, 230, "A", svg, false, A);
+        drawLabel(280, 260, "C", svg, false, C);
+        drawWire(290, 230, 330, 230, A, svg);
+        drawWire(290, 260, 330, 260, C, svg);
+        drawGateShape(type, 330, 245, rightBotRes, svg);
+        drawWire(370, 245, 410, 225, rightBotRes, svg);
+
+        drawGateShape(innerType, 410, 210, final, svg);
+        drawWire(440, 210, 480, 210, final, svg);
+      }
+
+      function drawDeMorgan(gateType, state) {
+        const svg = document.getElementById("circuit-svg");
+        const { A, B } = state;
+        const isNand = gateType === "NAND";
+        const final = isNand ? !(A && B) : !(A || B);
+
+        drawLabel(60, 100, "A", svg, false, A);
+        drawLabel(60, 140, "B", svg, false, B);
+        drawWire(70, 100, 120, 100, A, svg);
+        drawWire(70, 140, 120, 140, B, svg);
+        drawGateShape(gateType, 120, 120, final, svg);
+        drawWire(160, 120, 200, 120, final, svg);
+
+        const eqText = createSVGElement("text", {
+          x: 250,
+          y: 150,
+          "font-size": "20",
+          "font-weight": "bold",
+          "text-anchor": "middle",
+        });
+        eqText.textContent = "=";
+        svg.appendChild(eqText);
+
+        const swapType = isNand ? "OR" : "AND";
+        const notA = A ? 0 : 1;
+        const notB = B ? 0 : 1;
+
+        drawLabel(300, 180, "A", svg, false, A);
+        drawWire(310, 180, 330, 180, A, svg);
+        drawGateShape("NOT", 330, 180, notA, svg);
+        drawWire(360, 180, 400, 190, notA, svg);
+
+        drawLabel(300, 240, "B", svg, false, B);
+        drawWire(310, 240, 330, 240, B, svg);
+        drawGateShape("NOT", 330, 240, notB, svg);
+        drawWire(360, 240, 400, 230, notB, svg);
+
+        drawGateShape(swapType, 400, 210, final, svg);
+        drawWire(440, 210, 480, 210, final, svg);
+      }
+
+      function drawAbsorption(type, state) {
+        const svg = document.getElementById("circuit-svg");
+        const { A, B } = state;
+        const innerType = type === "AND" ? "OR" : "AND";
+        const innerRes = innerType === "AND" ? A && B : A || B;
+        const final = A;
+
+        drawLabel(50, 80, "A", svg, false, A);
+        drawLabel(50, 120, "B", svg, false, B);
+        drawWire(60, 80, 110, 80, A, svg);
+        drawWire(60, 120, 110, 120, B, svg);
+        drawGateShape(innerType, 110, 100, innerRes, svg);
+
+        drawWire(140, 100, 180, 120, innerRes, svg);
+        drawWire(80, 80, 80, 140, A, svg);
+        drawWire(80, 140, 180, 140, A, svg);
+
+        const dot = createSVGElement("circle", {
+          cx: 80,
+          cy: 80,
+          r: 3,
+          fill: "#64748B",
+        });
+        svg.appendChild(dot);
+
+        drawGateShape(type, 180, 130, final, svg);
+        drawWire(220, 130, 260, 130, final, svg);
+
+        const eqText = createSVGElement("text", {
+          x: 300,
+          y: 150,
+          "font-size": "20",
+          "font-weight": "bold",
+          "text-anchor": "middle",
+        });
+        eqText.textContent = "=";
+        svg.appendChild(eqText);
+
+        drawLabel(340, 180, "A", svg, false, A);
+        drawWire(350, 180, 450, 180, A, svg);
+      }
+
+      window.onload = () => {
+        renderNavigation();
+        updateView();
+      };
+    </script>
+  </body>
+</html>
